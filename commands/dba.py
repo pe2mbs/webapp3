@@ -120,7 +120,6 @@ EXPORT_HELP = """Export the database to a {} file.
                default = None,
                help = "The table name from the database." )
 @click.option( '--clear',
-               nargs = 0,
                default = False,
                help = "Clears the table before inserting (only for {}.)".format( dbExporters.hasClear2String() ) )
 @click.argument( 'filename' )

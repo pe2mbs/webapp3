@@ -295,6 +295,7 @@ class CrudInterface( object ):
         #     abort( redirect( '/#/logout' ) )
 
         data = getDictFromRequest( request )
+        verify_jwt_in_request()
         user_info = get_jwt_identity()
         API.app.logger.debug( 'POST: {}/pagedlist by {}'.format( self._uri, user_info ) )
         filter = data.get( 'filters', [] )

@@ -40,6 +40,7 @@ from webapp2.extensions.flask import Flask
 import webapp2.extensions.database              # noqa
 import webapp2.extensions.marshmallow           # noqa
 import webapp2.extensions.migrate               # noqa
+from webapp2.common.tablemanager import TableManager
 
 
 # Try to load optional packages
@@ -101,6 +102,34 @@ class NormalEndProcess( Exception ):
     pass
 
 
+def my_safe_load( stream, Loader = yaml.Loader, master = None ):
+    loader = Loader( stream )
+    if master is not None:
+        loader.anchors = master.anchors
+
+    try:
+        return loader.get_single_data()
+
+    finally:
+        loader.dispose()
+
+
+def yaml_include( loader, node ):
+    if node.value.startswith( '.' ):
+        include_name = os.path.join( os.path.dirname( node.start_mark.name ), node.value )
+
+    else:
+        include_name = node.value
+
+    include_name = os.path.abspath( include_name )
+    with open( include_name, 'r' ) as inputfile:
+        data = my_safe_load( inputfile, master = loader )
+        return data
+
+
+yaml.add_constructor( "!include", yaml_include, Loader=yaml.Loader )
+
+
 def createApp( root_path, config_file = None, module = None, full_start = True, verbose = False, logging_name = None, process_name = 'app' ):
     """An application factory, as explained here:
        http://flask.pocoo.org/docs/patterns/appfactories/.
@@ -111,8 +140,10 @@ def createApp( root_path, config_file = None, module = None, full_start = True, 
 
         :return:            The application object.
     """
-    API.app = None
-    saved_stderr = sys.stderr
+    API.app             = None
+    saved_stderr        = sys.stderr
+    API.dbtables        = TableManager()
+    API.memorytables    = TableManager()
     try:
         root_path = ResolveRootPath( root_path )
         print( "Starting Flask application, loading configuration." )

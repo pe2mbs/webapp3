@@ -21,6 +21,11 @@ import traceback
 import sys
 from flask import json, request, jsonify, render_template, make_response, Response
 import werkzeug.exceptions
+try:
+    from werkzeug.exceptions import HTTP_STATUS_CODES
+
+except:
+    from werkzeug.http import HTTP_STATUS_CODES
 
 __version__     = "1.0"
 __author__      = 'Marc Bertens-Nguyen'
@@ -87,7 +92,7 @@ def handle_exception( e: Exception ):
             "code":         response.status_code,
             "name":         str( type( e ) ),
             "message":      description,
-            "codeString":   werkzeug.exceptions.HTTP_STATUS_CODES[ response.status_code ],
+            "codeString":   HTTP_STATUS_CODES[ response.status_code ],
             "url":          request.url,
             "request": {
                 #"environ": request.environ,                        # This is a class
